@@ -1,2 +1,2 @@
 # temp
-https://securingtomorrow.mcafee.com/mcafee-labs/vulnerable-openssl-handshake-renegotiation-can-trigger-denial-service/
+https://www.reddit.com/r/netsec/comments/917zb1/blind_xxe_via_powerpoint_files/
