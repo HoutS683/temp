@@ -1,4 +1,3 @@
-
 -------------------------------------------
 starting crawl data: Office
 --------------------------
@@ -31,13 +30,15 @@ parse to Excel
 Done
 
 -------------------------------------------
-starting crawl data: Foxitsoftware Reader
+starting crawl data: Foxitsoftware Phantompdf
 --------------------------
-2016: 4
-2018: 47
+2015: 0
+2016: 3
+2017: 0
+2018: 45
 2019: 47
 --------------------------
-total = 341
+total = 338
 --------------------------
 parse to Excel
 Done
