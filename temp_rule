@@ -1,0 +1,7 @@
+content: "|31 63 30 30 30 30 30 30 30 32 30 30|";
+content: "|61 39 30 30 30 30 30 30|";
+distance: 4;
+within: 12;
+content: "|30 33 30 31 30 31 30 33|";
+distance: 32;
+within: 40;
