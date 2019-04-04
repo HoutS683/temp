@@ -1,0 +1,45 @@
+<!doctype html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+  <head>
+    <script>
+      var o­IFrame­Element = document.get­Element­By­Id("IFrame"),
+          n­Page­Load­Timeout­In­Seconds = 5,
+          u­Index = 0;
+      onload = function f­Load­Next() {
+        // Show progress in title bar.
+        document.title = "Loading test " + u­Index + "...";
+        // Add iframe element that loads the next test case.
+        var o­IFrame = document.body.append­Child(document.create­Element("iframe")),
+            b­Finished = false;
+        o­IFrame.set­Attribute("sandbox", "allow-scripts");
+        o­IFrame.set­Attribute("src", "fuzz-" + ++u­Index + ".html");
+        // Hook load event handler and add timeout to remove the iframe when the test is finished.
+        try {
+          o­IFrame.content­Window.add­Event­Listener("load", f­Cleanup­And­Load­Next);
+        } catch (e) {
+          // This may cause an exception because some browsers treat different files loaded from the
+          // local file system as comming from different origins.
+        };
+        var x­Timeout = set­Timeout(f­Cleanup­And­Load­Next, n­Page­Load­Timeout­In­Seconds * 1000);
+        function f­Cleanup­And­Load­Next() {
+          // Both the load event and the timeout can call this function; make sure we only execute once:
+          if (!b­Finished) {
+            b­Finished = true;
+            console.log("Finished test " + u­Index + "...");
+            // Let's give the page another 5 seconds to render animations etc.
+            set­Timeout(function() {
+              // Remove the iframe from the document to delete the test.
+              try {
+                document.body.remove­Child(o­IFrame);
+              } catch (e) {};
+            }, 5000);
+            f­Load­Next();
+          };
+        };
+      };
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
