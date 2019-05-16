@@ -1,0 +1,58 @@
+tiêu đề
+	Lỗ hổng trong bộ xử lý của Intel 
+tổng quan
+	Có 4 kiểu tấn công mới vào các lỗ hổng trong bộ xử lý của Intel: ZombieLoad, Fallout, RIDL và Store-to-Leak Forwarding
+	Tương tự như Spectre và Meltdown, 4 kiểu tấn công mới này cũng khai thác vào tính năng "speculative execution" được sử dụng trong CPU, qua đó cho phép kẻ tấn công đọc dữ liệu trực tiếp từ bộ nhớ đệm (memory caches) của bộ xử lý.
+
+tai lieu
+	https://software.intel.com/security-software-guidance/insights/deep-dive-intel-analysis-microarchitectural-data-sampling
+
+điều kiện
+	các máy tính sử dụng CPU Intel được sản xuất từ năm 2011 đến nay có nguy cơ bị ảnh hưởng bởi lỗ hổng này
+vector
+	ZombieLoad Attack:
+		Trên 1 máy tính, attacker chạy mã độc trên cùng 1 nhân CPU vật lý với victim process là có thể đọc được data của victim process đang được load bởi CPU
+		Victim process có thể là web browser, password manage app,..., qua đó attacker có thể leak được password, lịch sử duyệt web,... của victim
+		Một kịch bản khác là giữa 2 Virtual Machine, một mã độc trong VM A có thể đọc được data của victim process trong VM B (yêu cầu cả 2 process đang chạy trên cùng 1 nhân cpu vật lý) -> điều này ảnh hưởng rất lớn đến các cloud hosting service khi chỉ cần 1 VM bị nhiễm mã độc là attacker có thể leak data từ các VM khác.
+
+
+	RIDL + Fallout + Store-to-Leak Forwarding attack:
+		Kẻ tấn công chạy trực tiếp mã khai thác trên máy tính nạn nhân (local attack)
+		Nạn nhân truy cập vào 1 trang web hoặc quảng cáo có chứa mã javascript độc là có thể bị leak data
+		Attacker chiếm được 1 VM trong cloud là có thể leak data của các VM khác
+
+tt bổ sung
+	ZombieLoad Attack:
+		Cuộc tấn công này khai thác lỗ hổng CVE-2018-12130
+		Một chương trình độc hại sử dụng ZombieLoad Attack có thể đọc được các data hiện đang được tải bởi cùng nhân CPU vật lý mà nó đang chạy. Data đó có thể thuộc về các ứng dụng hệ thống, hệ điều hành, Intel SGX enclaves và máy ảo khác. 
+		*Attack này không thể kiểm soát trực tiếp dữ liệu nào được đọc, nghĩa là data được leak ra có thể chứa nhiều dữ liệu rác, cần phải lọc lại các dữ liệu có ý nghĩa. Tuy nhiên 1 số data như url, session cookies, credit card,... tuân theo 1 patterns nhất định nên  attacker vẫn có thể lấy được lịch sử duyệt web, user keys, passwords, disk encryption keys,...
+		Research paper: https://zombieloadattack.com/zombieload.pdf
+		https://www.cyberus-technology.de/posts/2019-05-14-zombieload.html
+		PoC + Demo: https://zombieloadattack.com/
+
+	RIDL + Fallout attack:
+		RIDL sử dụng các lỗ hổng CVE-2018-12130, CVE-2018-12127, CVE-2019-11091
+		Fallout sử dụng lỗ hổng CVE-2018-12126
+		Tấn công này cho phép attacker leak in-flight data từ các internal CPU buffers như Line-Fill Buffers, Load Ports, Store Buffers. 
+		RIDL attack có thể thu thập được các thông tin bí mật như root password từ unprivileged user hoặc sensitive data từ kernel
+		Fallout có thể sử dụng để break Kernel Address Space Layout Randomization (KASLR) hoặc leak dữ liệu nhạy cảm được ghi vào bộ nhớ bởi nhân hệ điều hành.
+		Tuy nhiên, việc exploit lỗ hổng này tốn rất nhiều thời gian (poc leak root password cần chạy 24h liên tục)
+		in-flight + Demo: https://mdsattacks.com/
+		Research paper: https://mdsattacks.com/files/ridl.pdf
+						https://mdsattacks.com/files/fallout.pdf
+
+	Store-to-Leak Forwarding:
+		Tấn công này chủ yếu được sử dụng để attacker bypass ASLR và KASLR, sử dụng kết hợp với các cuộc tấn công khác
+		paper: https://cpu.fail/store_to_leak_forwarding.pdf
+	
+cách fix
+		*Do đây là lỗi trong CPU nên antivirus không thể detect kiểu tấn công này được, tuy nhiên phần mềm chống vi-rút có thể phát hiện phần mềm độc hại sử dụng các cuộc tấn công bằng cách so sánh các tệp nhị phân sau khi chúng được biết đến.
+		---------------------------------------------------
+		cấu hình:
+
+			Trusted và untrusted processes không được chạy trên cùng 1 nhân vật lý.
+			Hoặc vô hiệu hóa Hyperthreading là biện pháp an toàn nhất (Ảnh hương hiệu suất xử lý của CPU khi disable HT: https://www.intel.com/content/www/us/en/architecture-and-technology/mds.html?_ga=2.58235305.2011671871.1558012696-1065820232.1558012696)
+		
+		Update bản vá
+			Người dùng window: update bản vá : https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/ADV190013
+			Người dùng linux: 
